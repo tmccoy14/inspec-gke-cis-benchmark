@@ -1,39 +1,22 @@
-# Base Ruby image
-FROM ruby:2.6
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-# Chef InSpec install arguments
-ARG VERSION=4.37.20
-ARG CHANNEL=stable
+FROM chef/inspec:4.18.104
 
-# Chef InSpec cannot execute without accepting the license
+COPY . /share/.
 ENV CHEF_LICENSE accept-no-persist
 
-# Install packages
-RUN apt-get update \
-    && apt-get upgrade -y \
-    && apt-get install -y \
-    curl \
-    gcc \
-    g++ \
-    make \
-    build-essential \
-    git \
-    wget \
-    rpm2cpio \
-    cpio
+RUN gem install rubocop
 
-# Install Chef InSpec
-RUN wget "http://packages.chef.io/files/${CHANNEL}/inspec/${VERSION}/el/7/inspec-${VERSION}-1.el7.x86_64.rpm" -O /tmp/inspec.rpm
-RUN rpm2cpio /tmp/inspec.rpm | cpio -idmv
-RUN rm -rf /tmp/inspec.rpm
-
-# Install Gems
-RUN gem install inspec-bin
-RUN gem install train-kubernetes
-RUN gem install bundler
-
-# Install K8s plugin
-RUN inspec plugin install train-kubernetes
-
-# Set Chef InSpec entrypoint
-ENTRYPOINT [ "inspec" ]
+ENTRYPOINT ["inspec"]
